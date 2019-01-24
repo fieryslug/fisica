@@ -17,45 +17,46 @@ def wall(width, x):
     y = 0 * x
     N = len(y)
     for i in range(width):
-        y[i] = 1e6
-        y[N-1-i] = 1e6
+        y[i] = 1e8
+        y[N-1-i] = 1e8
     return y
 
-def animator(dt, tot_time, x, psi_x): 
+def animator(ptc, tot_time, drawPotent=True): 
     fig = plt.figure() 
-    ax = plt.axes(xlim=(-100, 100), ylim=(-1.5, 1.5)) 
+    ax = plt.axes(xlim=(ptc.xax[0], ptc.xax[-1]), ylim=(-1.5, 1.5)) 
     liner, = ax.plot([], [], lw=0.5) 
     linei, = ax.plot([], [], lw=0.5) 
     linep, = ax.plot([], [], lw=0.7)    
-
+    linev, = ax.plot([], [], lw=2)
 
     def init(): 
         liner.set_data([], []) 
         linei.set_data([], []) 
-        linep.set_data([], []) 
-        return liner, linei, linep, 
+        linep.set_data([], [])
+
+        linev.set_data([], [])
+
+        return liner, linei, linep, linev
  
     def animate(i):
-        time.sleep(1)
-        global x, psi_x
-        m = 1
-        k, psi_k = fourier(x, psi_x)
-        psi_k += dt * (k*k*hbar/(2*m*1j)) * psi_k
-        psi_x = ifourier(k, psi_k, x)
+        global ptc
+        ptc.update()
 
-        stater = np.real(psi_x) 
-        statei = np.imag(psi_x) 
+        stater = np.real(ptc.psi_x) 
+        statei = np.imag(ptc.psi_x) 
         p = stater**2 + statei**2 
-        liner.set_data(x, stater) 
-        linei.set_data(x, statei) 
-        linep.set_data(x, p) 
+        liner.set_data(ptc.xax, stater) 
+        linei.set_data(ptc.xax, statei) 
+        linep.set_data(ptc.xax, p)
+
+        linev.set_data(ptc.xax, ptc.poten)
          
-        return liner, 
+        return liner, linei, linep, linev
  
     t0 = time.time() 
     animate(0) 
     t1 = time.time() 
-    intv = int(1000 * dt - (t1-t0)) 
+    intv = int(1000 * ptc.dt - (t1-t0)) 
     frms = (tot_time*1000)//intv 
     print(intv) 
  
@@ -84,9 +85,42 @@ def ifourier(k, psi_k, x):
     psi_x = psi_x_1 * sr2pi / dx * np.exp(1j*k[0]*x)
     return psi_x
 
-x = np.linspace(-100, 100, 2**10)
-psi_x = gauss_packet(x, 5)
-animator(0.01, 10, x, psi_x)
+class ParticleInABox:
+    def __init__(self, x, psi_x0, m, pot=0, dt=0.01):
+        self.xax = x
+        self.psi_x = psi_x0
+        self.N = len(self.xax)
+
+        self.kax, tmp = fourier(self.xax, self.psi_x)
+        
+        assert len(x) == len(psi_x0) and self.N >= 512
+
+        self.mass = m
+        self.poten = wall(self.N*3//100, self.xax)
+        self.poten += pot
+        self.dt = dt
+        self.time = 0
+        
+        self.ux_half = np.exp(-1j*self.poten*self.dt/(2*hbar))
+        self.ux = self.ux_half * self.ux_half
+        self.uk = np.exp(-1j*self.kax*self.kax*hbar*self.dt/(2*self.mass))
+
+        
+    def update(self):
+        self.psi_x = self.psi_x * self.ux_half
+        ktmp, psi_k = fourier(self.xax, self.psi_x)
+        psi_k = psi_k * self.uk
+        self.psi_x = ifourier(self.kax, psi_k, self.xax)
+        self.psi_x = self.psi_x * self.ux_half
+    
+        self.time += self.dt
+        
+x = np.linspace(-100, 100, 2**12)
+psi_x = gauss_packet(x, 0, delta=2)
+
+ptc = ParticleInABox(x, psi_x, 10000)
+
+animator(ptc, 10)
 
 
 
