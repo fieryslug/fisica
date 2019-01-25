@@ -16,9 +16,10 @@ def plot(f, xmin, xmax, dx=0.001):
     pyplot.plot(xplot, fplot)
     pyplot.show()
 
-def cplot(x, f):
+def cplot(x, f, ylim=(1, -1)):
     fr = np.real(f)
     fi = np.imag(f)
     pyplot.plot(x, fr)
     pyplot.plot(x, fi)
+    pyplot.ylim(ylim)
     pyplot.show()
