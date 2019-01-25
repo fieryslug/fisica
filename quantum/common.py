@@ -28,7 +28,9 @@ def delta(x, x0=0):
     sig = 0.05
     return 1 / (sig * np.sqrt(2*np.pi)) * np.exp(-0.5 * ((x-x0)/sig)**2)
     
-
+def smooth_theta(x, x0, ):
+    pass
+    
 
 
 def fourier(x, psi_x):
@@ -66,7 +68,7 @@ class ParticleInABox:
         assert len(x) == len(psi_x0) and self.N >= 512
 
         self.mass = m
-        self.poten = wall(self.xax.size//30, self.xax)
+        self.poten = (2 +np.tanh((x-self.xax[-50])*10) + np.tanh((self.xax[50]-x)*10)) * 1e3
         #self.poten = 0
         self.poten = np.maximum(self.poten, pot)
         self.dt = dt

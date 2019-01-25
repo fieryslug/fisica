@@ -13,14 +13,14 @@ fig = plt.figure()
 ax = fig.add_subplot()
 
 
-ax = plt.axes(xlim = (-15, 15), ylim = (-2, 2))
+ax = plt.axes(xlim = (-40, 40), ylim = (-2, 2))
 liner, = ax.plot([], [], lw=1)
 linei, = ax.plot([], [], lw=1)
 linep, = ax.plot([], [], lw=1)
 linev, = ax.plot([], [], lw=1)
 
-x = np.linspace(-10, 10, 2**12)
-psi_x0 = mq.gauss_packet(x, p0=15)
+x = np.linspace(-40, 40, 2**12)
+psi_x0 = mq.gauss_packet(x, p0=50)
 psi_x0[:100] = 0
 psi_x0[-100:] = 0
 ptc = mq.ParticleInABox(x, psi_x0, 5, dt=0.01)
