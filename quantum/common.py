@@ -28,8 +28,10 @@ def delta(x, x0=0):
     sig = 0.05
     return 1 / (sig * np.sqrt(2*np.pi)) * np.exp(-0.5 * ((x-x0)/sig)**2)
     
-def smooth_theta(x, x0, ):
-    pass
+def smooth_theta(x, x0, smoothness=5, invert=False):
+    if invert:
+        return 1+np.tanh((x0-x)*smoothness)
+    return 1+np.tanh((x-x0)*smoothness)
     
 
 
@@ -68,7 +70,7 @@ class ParticleInABox:
         assert len(x) == len(psi_x0) and self.N >= 512
 
         self.mass = m
-        self.poten = (2 +np.tanh((x-self.xax[-50])*10) + np.tanh((self.xax[50]-x)*10)) * 1e3
+        self.poten = 1e3 * (smooth_theta(self.xax, self.xax[128], invert=True) + smooth_theta(self.xax, self.xax[-128], invert=False))
         #self.poten = 0
         self.poten = np.maximum(self.poten, pot)
         self.dt = dt
